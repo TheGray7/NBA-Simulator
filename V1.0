@@ -1,0 +1,284 @@
+import time
+import random
+
+fileName = "NBA DataBase.csv"
+
+def teamMaker():
+#Takes no argument. It asks user input for team names. It then calls teamFinder to see if name is valid. 
+#Returns the team names
+    while True:
+        teamOne = input('What is the name of the first team?: ')
+        checker, teamOne = teamFinder(teamOne, fileName)
+        if checker == True:
+            break
+        if checker == False:
+            print("Sorry, that's not a valid NBA team name. Please input only the name of the team and not the city")
+            continue
+            
+    while True:
+        teamTwo = input('What is the name of the second team?: ')
+        checker, teamTwo = teamFinder(teamTwo, fileName)
+        if checker == True:
+            break
+        if checker == False:
+            print("Sorry, that's not a valid NBA team name. Please input only the name of the team and not the city")
+            continue
+    
+    return teamOne, teamTwo
+    
+    
+def teamFinder(team, fileName):
+#Receives the database file name and team inputted from teamMaker as arguments. It then formats the team name and searches the database to see if it's a valid name
+#Returns true if it's valid and false if invalid. It also returns the formatted team name
+    dataBase = open(fileName, 'r')
+    team = team.replace(" ", "")
+    teamCap = team.capitalize()
+    
+    for line in dataBase:
+        if teamCap in line:
+            return True, teamCap
+
+    return False, teamCap
+    
+def dataRetreiver(fileName, userTeam):
+#receives dataBase file name and one formatted team name as arguments. It then pulls all player data from dataBase
+#Returns player data as a list in this order: position, firstName, lastName, FGA, 3PA, 3P%, FTA, FT%, TOV, PF, ORB,	DRB, RPG, SPG, BPG
+
+    dataBase = open(fileName, 'r')
+    dataList = []
+    dataString = ''
+    for line in dataBase:
+        if line.startswith(userTeam):
+            break
+            
+    counter = 1
+    for line in dataBase:
+        if counter == 6:
+            break
+        dataString += line
+        counter += 1
+        
+        
+    dataList = dataString.split("\n")    
+    
+    playerList = []
+   
+    for player in dataList:
+        player = player.replace('\t',' ')
+        player = player.split(' ')
+        playerList.append(player)
+        
+    
+    return playerList
+        
+    
+def shotMaker(twoPer, threePer):
+    twoPer = int(twoPer)
+    threePer = int(threePer)
+    badTwo = 100-(twoPer)
+    badThree = 100-(threePer)
+    twoList = [2]*twoPer + [0]*badTwo
+    threeList = [3]*threePer + [0]*badThree
+    shotSelection = random.choice([twoList,threeList])
+    shotType = 0
+    if 2 in shotSelection:
+        shotType = 2
+    if 3 in shotSelection:
+        shotType = 3
+    outcome = random.choice(shotSelection)
+    
+    return shotType, outcome
+
+
+def clockMaker(minute, second):
+    timeList = [10,10,10,12,12,12,14,14,16,18,20,22]
+    timeTaken = random.choice(timeList)
+    second -= timeTaken
+    if second <= 0:
+        leftOver = second*-1
+        second = 60 - leftOver
+        minute -= 1
+
+    clock = str(minute) + ':' + str(second)
+    if second <= 9:
+        clock = str(minute) + ':' + '0'+ str(second)
+
+    if minute < 0:
+            minute = 'over'
+            
+    return minute, second, clock
+
+
+def playerSelector(teamInfo):
+    roster = teamInfo[0]
+    roster = roster[0]
+    player = random.choice(roster)
+    index = roster.index(player)
+    stats = teamInfo[1]
+    playerStats = stats[index]
+    playerTwoStats = playerStats[0]
+    playerThreeStats = playerStats[1]
+
+    return player, playerTwoStats, playerThreeStats
+    
+    
+def quarterRefiner(quarter):
+    if quarter == 1:
+        quarter = '1st'
+    if quarter == 2:
+        quarter = '2nd'
+    if quarter == 3:
+        quarter = '3rd'
+    if quarter == 4:
+        quarter = '4th'
+    
+    return quarter
+    
+def statMaker(statList, player, outcome):
+    fga = 1
+    counter = 0
+    for playerLists in statList:
+        if playerLists[0] == player:
+            break
+        else:
+            counter += 1
+            
+    if outcome in [2,3]:
+        fgm = 1
+    else:
+        fgm = 0
+        
+    totalfgm = statList[counter][1]
+    totalfgm += fgm
+    statList[counter][1] = totalfgm
+    
+    totalfga = statList[counter][2]
+    totalfga += fga
+    statList[counter][2] = totalfga
+    
+    totalPoints = statList[counter][3]
+    totalPoints += outcome
+    statList[counter][3] = totalPoints
+    return statList
+    
+def resolutionPrinter(statListOne, statListTwo):
+    print("\nFinal Player Stats:\n")
+    for number in range(0,5):
+        number = int(number)
+        lineOne = statListOne[number][0] + ": " + str(statListOne[number][1]) + '/' + str(statListOne[number][2]), str(statListOne[number][3]) + "pts"
+        lineOne = str(lineOne)
+        lineTwo = statListTwo[number][0] + ": " + str(statListTwo[number][1]) + '/' + str(statListTwo[number][2]), str(statListTwo[number][3]) + "pts"
+        lineTwo = '{:>70}'.format(str(lineTwo))
+        print(lineOne, lineTwo)
+    return
+
+def rosterCreator(teamInfo):
+    roster = []
+    for x in range(0,5):
+        first = teamInfo[x][1] 
+        last = teamInfo[x][2]
+        name = first + ' ' + last
+        roster.append(name)
+        
+    return roster
+
+def percentFinder(teamInfo):
+#takes roster and player stats list as an arguments. It pulls the approprate data from each index and then calculates missing info.
+#returns the 2 and 3 percentages as whole integers that are held within lists within a list    
+    
+    percentages = []
+    for x in range(0,5):
+        twoAttempts = float(teamInfo[x][3]) - float(teamInfo[x][5])
+        threeMakes = float(teamInfo[x][5])* float(teamInfo[x][6])
+        twoMakes = (float(teamInfo[x][3])* float(teamInfo[x][4])) -float(threeMakes)
+        twoPer = (twoMakes/twoAttempts)*100
+        threePer = float(teamInfo[x][6])*100
+        twoPer = int(twoPer)
+        threePer = int(threePer)
+        pers = [twoPer,threePer]
+        percentages.append(pers)
+   
+    return percentages
+
+def userSpeed():
+#Takes no arguments. asks the input of user to determine the speed of the simulation
+#returns the speed as a number  0,.1,1,or 2
+
+    while True:
+        answer = input("How Fast do you want the simulation to go? (slow('s'), medium('m'), fast('f'), or instant('i') ")
+        answer = answer.upper()
+        if answer in ['S','M','F','I']:
+            break
+        else:
+            print("Sorry, that's not a valid answer. Please choose between 's','m','f', or 'i'. ")
+            continue
+    
+    if answer == 'S':
+        speed = 2
+    if answer == 'M':
+        speed = 1   
+    if answer == 'F':
+        speed = .1
+    if answer == 'I':
+        speed = 0    
+        
+    return speed
+    
+    
+def main():
+
+    teamOneName, teamTwoName = teamMaker()
+    teamOneInfo = dataRetreiver(fileName, teamOneName)
+    teamTwoInfo = dataRetreiver(fileName, teamTwoName)
+    rosterOne = rosterCreator(teamOneInfo)
+    rosterTwo = rosterCreator(teamTwoInfo)
+    newInfoOne = [[rosterOne], percentFinder(teamOneInfo)]
+    newInfoTwo = [[rosterTwo], percentFinder(teamTwoInfo)]
+    statListOne = [[rosterOne[0],0 ,0,0],[rosterOne[1],0,0,0],[rosterOne[2],0,0,0],[rosterOne[3],0,0,0],[rosterOne[4],0,0,0]]
+    statListTwo = [[rosterTwo[0],0 ,0,0],[rosterTwo[1],0,0,0],[rosterTwo[2],0,0,0],[rosterTwo[3],0,0,0],[rosterTwo[4],0,0,0]]
+    speed = userSpeed()
+
+    oneScore = 0
+    twoScore = 0
+    for quarter in range (1,5):
+         minute = 14
+         second = 59
+         while True:
+            time.sleep(speed)
+            onePlayer, onePlayerTwoStats, onePlayerThreeStats = playerSelector(newInfoOne)
+            twoPlayer, twoPlayerTwoStats, twoPlayerThreeStats = playerSelector(newInfoTwo)
+            oneShotType, oneOutcome = shotMaker(onePlayerTwoStats, onePlayerThreeStats)
+            statListOne = statMaker(statListOne, onePlayer, oneOutcome)
+            minute, second, clock = clockMaker(minute, second)
+            quarter = quarterRefiner(quarter)
+            if minute == 'over':
+                print("\n  ", quarter, "Quarter has ended\n")
+                break
+            oneScore += oneOutcome
+            print(quarter, 'quarter ',clock)
+            print(onePlayer, 'shoots a', oneShotType, 'and scores', oneOutcome, 'points', '                 ', teamOneName,":", oneScore, '   ',teamTwoName,':',twoScore,'\n')
+            time.sleep(speed)
+            twoShotType, twoOutcome = shotMaker(twoPlayerTwoStats, twoPlayerThreeStats)
+            statListTwo = statMaker(statListTwo, twoPlayer, twoOutcome)
+            minute, second, clock = clockMaker(minute, second)
+            quarter = quarterRefiner(quarter)
+            if minute == 'over':
+                print("\n  ", quarter, "Quarter has ended\n")
+                break
+            twoScore += twoOutcome
+            print(quarter, 'quarter ',clock)
+            print(twoPlayer, 'shoots a', twoShotType, 'and scores', twoOutcome, 'points', '                 ', teamOneName,":", oneScore, '   ',teamTwoName,':',twoScore,'\n')
+    if oneScore>twoScore:
+        print('\n                                           ',teamOneName, "Wins!!!\n                                  ",teamOneName,'  ',oneScore, ' - ',twoScore,'  ', teamTwoName)
+    else:
+        print('\n                                           ',teamTwoName, "Wins!!!\n                                  ",teamOneName,' ',oneScore, ' - ',twoScore,' ', teamTwoName)
+    resolutionPrinter(statListOne, statListTwo)
+    
+main()
+
+
+
+
+
+
+
