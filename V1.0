@@ -73,6 +73,9 @@ def dataRetreiver(fileName, userTeam):
         
     
 def shotMaker(twoPer, threePer):
+#takes two and three percentages as arguments. Then determines whether the shot was a 2 or 3 and whether or not they made it.
+#Returns the outcome of the play
+
     twoPer = int(twoPer)
     threePer = int(threePer)
     badTwo = 100-(twoPer)
@@ -91,6 +94,9 @@ def shotMaker(twoPer, threePer):
 
 
 def clockMaker(minute, second):
+#Takes the current in game minute and seconds remaining as arguments. Randomly chooses between 10-22 seconds to countdown by and reduces time remaining by that amount
+#returns the new clock in proper format and tracks when the quarter has ended
+
     timeList = [10,10,10,12,12,12,14,14,16,18,20,22]
     timeTaken = random.choice(timeList)
     second -= timeTaken
@@ -110,6 +116,9 @@ def clockMaker(minute, second):
 
 
 def playerSelector(teamInfo):
+#takes the team info as an argument. It randomly chooses a player from roster and pulls their associated stats
+#returns the player name and stats
+
     roster = teamInfo[0]
     roster = roster[0]
     player = random.choice(roster)
@@ -123,6 +132,8 @@ def playerSelector(teamInfo):
     
     
 def quarterRefiner(quarter):
+#takes the quarter number as an argument. Turns the quarter number into proper form
+#Returns proper quarter syntax. I.E. 1 becomes 1st
     if quarter == 1:
         quarter = '1st'
     if quarter == 2:
@@ -135,6 +146,8 @@ def quarterRefiner(quarter):
     return quarter
     
 def statMaker(statList, player, outcome):
+#takes  statList, player, and play outcome as arguments. Depending on play outcome, will modify player's stats
+#returns the newly modified stats in the statList
     fga = 1
     counter = 0
     for playerLists in statList:
@@ -159,9 +172,14 @@ def statMaker(statList, player, outcome):
     totalPoints = statList[counter][3]
     totalPoints += outcome
     statList[counter][3] = totalPoints
+    
     return statList
     
+    
 def resolutionPrinter(statListOne, statListTwo):
+#Takes both teams stat lists as arguments. Uses stat data to print a more user friendly info graphic
+#returns nothing. only prints information.
+
     print("\nFinal Player Stats:\n")
     for number in range(0,5):
         number = int(number)
@@ -173,6 +191,8 @@ def resolutionPrinter(statListOne, statListTwo):
     return
 
 def rosterCreator(teamInfo):
+#Takes team info as an argument. Pulls the first and last names from indexes, combines them and adds them to a list.
+#Returns a list of the 5 players in order of position.
     roster = []
     for x in range(0,5):
         first = teamInfo[x][1] 
@@ -226,24 +246,37 @@ def userSpeed():
     
     
 def main():
-
+    #aquire team names
     teamOneName, teamTwoName = teamMaker()
+    
+    #use team names to find player and their respective stats
     teamOneInfo = dataRetreiver(fileName, teamOneName)
     teamTwoInfo = dataRetreiver(fileName, teamTwoName)
+    
+    #finds roster of first and last names for both teams
     rosterOne = rosterCreator(teamOneInfo)
     rosterTwo = rosterCreator(teamTwoInfo)
+    
+    #creates new data list with rosters and refined player stats
     newInfoOne = [[rosterOne], percentFinder(teamOneInfo)]
     newInfoTwo = [[rosterTwo], percentFinder(teamTwoInfo)]
+    
+    #template for starting stats for each player on both teams
     statListOne = [[rosterOne[0],0 ,0,0],[rosterOne[1],0,0,0],[rosterOne[2],0,0,0],[rosterOne[3],0,0,0],[rosterOne[4],0,0,0]]
     statListTwo = [[rosterTwo[0],0 ,0,0],[rosterTwo[1],0,0,0],[rosterTwo[2],0,0,0],[rosterTwo[3],0,0,0],[rosterTwo[4],0,0,0]]
+    
+    #finds speed of simulation
     speed = userSpeed()
 
+
+#Game Begins Here
     oneScore = 0
     twoScore = 0
     for quarter in range (1,5):
          minute = 14
          second = 59
          while True:
+             #First Team's possession 
             time.sleep(speed)
             onePlayer, onePlayerTwoStats, onePlayerThreeStats = playerSelector(newInfoOne)
             twoPlayer, twoPlayerTwoStats, twoPlayerThreeStats = playerSelector(newInfoTwo)
@@ -257,6 +290,8 @@ def main():
             oneScore += oneOutcome
             print(quarter, 'quarter ',clock)
             print(onePlayer, 'shoots a', oneShotType, 'and scores', oneOutcome, 'points', '                 ', teamOneName,":", oneScore, '   ',teamTwoName,':',twoScore,'\n')
+            
+            #Second Team's Possession
             time.sleep(speed)
             twoShotType, twoOutcome = shotMaker(twoPlayerTwoStats, twoPlayerThreeStats)
             statListTwo = statMaker(statListTwo, twoPlayer, twoOutcome)
@@ -268,6 +303,8 @@ def main():
             twoScore += twoOutcome
             print(quarter, 'quarter ',clock)
             print(twoPlayer, 'shoots a', twoShotType, 'and scores', twoOutcome, 'points', '                 ', teamOneName,":", oneScore, '   ',teamTwoName,':',twoScore,'\n')
+    
+    #End of game data
     if oneScore>twoScore:
         print('\n                                           ',teamOneName, "Wins!!!\n                                  ",teamOneName,'  ',oneScore, ' - ',twoScore,'  ', teamTwoName)
     else:
